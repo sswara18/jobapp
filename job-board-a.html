@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Indian Job Board</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f6f8;
+      color: #333;
+    }
+    header {
+      background: linear-gradient(to right, #ff9933, #ffffff, #138808);
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    header h1 {
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: #000;
+    }
+    .search-bar input {
+      padding: 0.6rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      width: 250px;
+    }
+    main {
+      padding: 2rem;
+      max-width: 1200px;
+      margin: auto;
+    }
+    .filters {
+      margin-bottom: 1.5rem;
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .filters button {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 20px;
+      background-color: #eee;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .filters button.active, .filters button:hover {
+      background-color: #138808;
+      color: white;
+    }
+    .jobs {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    .job-card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      transition: 0.3s ease;
+      cursor: pointer;
+    }
+    .job-card:hover {
+      transform: translateY(-5px);
+    }
+    .job-title {
+      font-size: 1.2rem;
+      font-weight: bold;
+      margin-bottom: 0.5rem;
+      color: #138808;
+    }
+    .company {
+      color: #555;
+      margin-bottom: 0.5rem;
+    }
+    .location {
+      font-size: 0.9rem;
+      color: #888;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background-color: #e8e8e8;
+      margin-top: 2rem;
+      font-size: 0.9rem;
+    }
+
+    /* Modal */
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.6);
+      justify-content: center;
+      align-items: center;
+      z-index: 10;
+    }
+    .modal-content {
+      background: white;
+      padding: 2rem;
+      border-radius: 10px;
+      max-width: 500px;
+      width: 90%;
+      position: relative;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: scale(0.95); }
+      to { opacity: 1; transform: scale(1); }
+    }
+    .close-btn {
+      position: absolute;
+      top: 10px; right: 15px;
+      font-size: 1.2rem;
+      cursor: pointer;
+      color: #888;
+    }
+    .apply-button {
+      margin-top: 1rem;
+      background:#ff9933;
+      color:white;
+      padding:10px 15px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <h1>🇮🇳 Bharat Job Board</h1>
+    <div class="search-bar">
+      <input type="text" id="searchInput" placeholder="Search jobs (e.g., developer, Pune)" />
+    </div>
+  </header>
+
+  <main>
+    <div class="filters">
+      <button class="filter-btn active" data-category="All">All</button>
+      <button class="filter-btn" data-category="IT">IT</button>
+      <button class="filter-btn" data-category="Government">Government</button>
+      <button class="filter-btn" data-category="Remote">Remote</button>
+      <button class="filter-btn" data-category="Internship">Internship</button>
+    </div>
+
+    <div class="jobs" id="jobList">
+      <!-- Job cards will load here -->
+    </div>
+  </main>
+
+  <footer>
+    Made with ❤️ in India | © 2025 Bharat Careers
+  </footer>
+
+  <!-- Modal -->
+  <div class="modal" id="jobModal">
+    <div class="modal-content">
+      <span class="close-btn" onclick="closeModal()">×</span>
+      <h2 id="modalTitle"></h2>
+      <p><strong>Company:</strong> <span id="modalCompany"></span></p>
+      <p><strong>Location:</strong> <span id="modalLocation"></span></p>
+      <p><strong>Description:</strong></p>
+      <p id="modalDescription"></p>
+      <button onclick="applyNow()" class="apply-button">
+        Go to Application ↗
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const jobs = [
+      {
+        title: "Software Developer",
+        company: "TCS",
+        location: "Pune",
+        category: "IT",
+        description: "Work on enterprise software for global clients.",
+        applyLink: "https://careers.tcs.com"
+      },
+      {
+        title: "Junior Web Developer",
+        company: "Infosys",
+        location: "Hyderabad",
+        category: "IT",
+        description: "Build responsive front-end components using HTML, CSS, JS.",
+        applyLink: "https://www.infosys.com/careers"
+      },
+      {
+        title: "Clerk",
+        company: "SBI",
+        location: "Mumbai",
+        category: "Government",
+        description: "Banking documentation and customer support roles.",
+        applyLink: "https://bank.sbi/careers"
+      },
+      {
+        title: "Remote Frontend Intern",
+        company: "StartupIndia",
+        location: "Remote",
+        category: "Internship",
+        description: "Assist with building a scalable React web app.",
+        applyLink: "https://startupindia.gov.in"
+      },
+      {
+        title: "Project Manager",
+        company: "Wipro",
+        location: "Bengaluru",
+        category: "IT",
+        description: "Lead agile teams, manage project delivery.",
+        applyLink: "https://careers.wipro.com"
+      },
+      {
+        title: "Data Entry Operator",
+        company: "India Post",
+        location: "Delhi",
+        category: "Government",
+        description: "Enter postal records and maintain digital archives.",
+        applyLink: "https://www.indiapost.gov.in"
+      },
+      {
+        title: "UI/UX Designer",
+        company: "Zomato",
+        location: "Remote",
+        category: "Remote",
+        description: "Design user-friendly interfaces and conduct user research.",
+        applyLink: "https://www.zomato.com/careers"
+      }
+    ];
+
+    const jobList = document.getElementById("jobList");
+    const searchInput = document.getElementById("searchInput");
+    const filterBtns = document.querySelectorAll(".filter-btn");
+
+    const modal = document.getElementById("jobModal");
+    const modalTitle = document.getElementById("modalTitle");
+    const modalCompany = document.getElementById("modalCompany");
+    const modalLocation = document.getElementById("modalLocation");
+    const modalDescription = document.getElementById("modalDescription");
+
+    let currentApplyLink = "";
+
+    function openModal(job) {
+      modalTitle.textContent = job.title;
+      modalCompany.textContent = job.company;
+      modalLocation.textContent = job.location;
+      modalDescription.textContent = job.description;
+      currentApplyLink = job.applyLink;
+      modal.style.display = "flex";
+    }
+
+    function closeModal() {
+      modal.style.display = "none";
+    }
+
+    function applyNow() {
+      if (currentApplyLink) {
+        window.open(currentApplyLink, "_blank");
+      }
+    }
+
+    window.onclick = function(event) {
+      if (event.target == modal) {
+        closeModal();
+      }
+    }
+
+    function displayJobs(filteredJobs) {
+      jobList.innerHTML = "";
+      if (filteredJobs.length === 0) {
+        jobList.innerHTML = "<p>No jobs found.</p>";
+        return;
+      }
+      filteredJobs.forEach(job => {
+        const jobCard = document.createElement("div");
+        jobCard.className = "job-card";
+        jobCard.innerHTML = `
+          <div class="job-title">${job.title}</div>
+          <div class="company">${job.company}</div>
+          <div class="location">${job.location}</div>
+          <button style="margin-top: 10px; background:#138808; color:#fff; border:none; padding:8px 12px; border-radius:6px; cursor:pointer;">
+            View Details
+          </button>
+        `;
+        jobCard.querySelector("button").addEventListener("click", (e) => {
+          e.stopPropagation(); // prevent card click
+          openModal(job);
+        });
+        jobCard.addEventListener("click", () => openModal(job));
+        jobList.appendChild(jobCard);
+      });
+    }
+
+    function filterJobs(category, keyword = "") {
+      let result = jobs;
+      if (category !== "All") {
+        result = result.filter(job => job.category === category);
+      }
+      if (keyword) {
+        result = result.filter(job =>
+          job.title.toLowerCase().includes(keyword.toLowerCase()) ||
+          job.company.toLowerCase().includes(keyword.toLowerCase()) ||
+          job.location.toLowerCase().includes(keyword.toLowerCase())
+        );
+      }
+      displayJobs(result);
+    }
+
+    // Initial load
+    filterJobs("All");
+
+    // Filter button click
+    filterBtns.forEach(btn => {
+      btn.addEventListener("click", () => {
+        filterBtns.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
+        const category = btn.getAttribute("data-category");
+        const keyword = searchInput.value.trim();
+        filterJobs(category, keyword);
+      });
+    });
+
+    // Search input
+    searchInput.addEventListener("input", () => {
+      const activeCategory = document.querySelector(".filter-btn.active").getAttribute("data-category");
+      filterJobs(activeCategory, searchInput.value.trim());
+    });
+  </script>
+
+</body>
+</html>
